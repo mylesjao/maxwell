@@ -51,6 +51,7 @@ public class MaxwellReplicator extends RunLoopProcess {
 	static final Logger LOGGER = LoggerFactory.getLogger(MaxwellReplicator.class);
 	private final boolean stopOnEOF;
 	private boolean hitEOF = false;
+	private boolean ignoreDDL = false;
 
 	public MaxwellReplicator(
 		SchemaStore schemaStore,
@@ -459,10 +460,12 @@ public class MaxwellReplicator extends RunLoopProcess {
 		String sql = event.getSql().toString();
 		BinlogPosition position = eventBinlogPosition(event);
 
-		List<ResolvedSchemaChange> changes =  schemaStore.processSQL(sql, dbName, position);
-		for ( ResolvedSchemaChange change : changes ) {
-			DDLMap ddl = new DDLMap(change,event.getHeader().getTimestamp(), sql, position);
-			producer.push(ddl);
+		if (!this.ignoreDDL) {
+			List<ResolvedSchemaChange> changes =  schemaStore.processSQL(sql, dbName, position);
+			for ( ResolvedSchemaChange change : changes ) {
+				DDLMap ddl = new DDLMap(change,event.getHeader().getTimestamp(), sql, position);
+				producer.push(ddl);
+			}
 		}
 
 		tableCache.clear();
@@ -477,6 +480,10 @@ public class MaxwellReplicator extends RunLoopProcess {
 
 	public void setFilter(MaxwellFilter filter) {
 		this.filter = filter;
+	}
+
+	public void setIgnoreDDL(Boolean ignored) {
+		this.ignoreDDL = ignored;
 	}
 
 	private void setReplicatorPosition(AbstractBinlogEventV4 e) {

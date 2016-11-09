@@ -46,6 +46,7 @@ public class MaxwellConfig extends AbstractConfig {
 	public BinlogPosition initPosition;
 	public boolean replayMode;
 	public boolean masterRecovery;
+	public boolean ignoreDDL;
 
 	public MaxwellConfig() { // argv is only null in tests
 		this.kafkaProperties = new Properties();
@@ -54,6 +55,7 @@ public class MaxwellConfig extends AbstractConfig {
 		this.maxwellMysql = new MaxwellMysqlConfig();
 		this.masterRecovery = false;
 		this.bufferedProducerSize = 200;
+		this.ignoreDDL = false;
 		setup(null, null); // setup defaults
 	}
 
@@ -130,6 +132,7 @@ public class MaxwellConfig extends AbstractConfig {
 		parser.accepts( "exclude_columns", "exclude these columns, formatted as exclude_columns=col1,col2" ).withOptionalArg();
 		parser.accepts( "blacklist_dbs", "ignore data AND schema changes to these databases, formatted as blacklist_dbs=db1,db2. See the docs for details before setting this!").withOptionalArg();
 		parser.accepts( "blacklist_tables", "ignore data AND schema changes to these tables, formatted as blacklist_tables=tb1,tb2. See the docs for details before setting this!").withOptionalArg();
+		parser.accepts( "ignore_ddl", "ignore DDL statements").withOptionalArg();
 
 		parser.accepts( "__separator_8" );
 
@@ -287,6 +290,7 @@ public class MaxwellConfig extends AbstractConfig {
 
 		this.replayMode =     fetchBooleanOption("replay", options, null, false);
 		this.masterRecovery = fetchBooleanOption("master_recovery", options, properties, false);
+		this.ignoreDDL =     fetchBooleanOption("ignore_ddl", options, properties, false);
 
 		this.outputConfig = new MaxwellOutputConfig();
 		outputConfig.includesBinlogPosition = fetchBooleanOption("output_binlog_position", options, properties, false);

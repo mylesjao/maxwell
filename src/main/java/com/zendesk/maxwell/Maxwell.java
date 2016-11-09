@@ -150,7 +150,9 @@ public class Maxwell implements Runnable {
 		this.context.setPosition(initPosition);
 
 		MysqlSchemaStore mysqlSchemaStore = new MysqlSchemaStore(this.context, initPosition);
-		this.replicator = new MaxwellReplicator(mysqlSchemaStore, producer, bootstrapper, this.context, initPosition);
+		MaxwellReplicator replicator = new MaxwellReplicator(mysqlSchemaStore, producer, bootstrapper, this.context, initPosition);
+		replicator.setIgnoreDDL(config.ignoreDDL);
+		this.replicator = replicator;
 
 		bootstrapper.resume(producer, replicator);
 
